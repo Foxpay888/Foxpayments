@@ -22,15 +22,15 @@
   <script>
     let upiId = "";
 
-fetch("https://<your-backend-url>/api/upi")
-  .then(res => res.json())
-  .then(data => {
-    upiId = data.upi;
-    document.getElementById("upiDisplay").innerText = upiId || "Not Set";
-  })
-  .catch(() => {
-    document.getElementById("upiDisplay").innerText = "Error loading UPI";
-  });
+    fetch("https://foxpayments.onrender.com/api/upi")
+      .then(res => res.json())
+      .then(data => {
+        upiId = data.upi;
+        document.getElementById("upiDisplay").innerText = upiId || "Not Set";
+      })
+      .catch(() => {
+        document.getElementById("upiDisplay").innerText = "Error loading UPI";
+      });
 
     function generateQRCode() {
       const amount = document.getElementById("amount").value.trim();
@@ -39,7 +39,7 @@ fetch("https://<your-backend-url>/api/upi")
         return;
       }
 
-      const upiUrl = `upi://pay?pa=${upiId}&pn=Arun Kumar&am=${amount}&cu=INR`;
+      const upiUrl = `upi://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR`;
       document.getElementById("qrcode").innerHTML = "";
 
       new QRCode(document.getElementById("qrcode"), {
