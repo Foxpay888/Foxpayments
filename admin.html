@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Panel - Local</title>
+  <title>Admin Panel</title>
   <style>
     body { font-family: Arial; padding: 30px; text-align: center; }
     input, button { padding: 10px; margin: 10px; font-size: 16px; }
@@ -24,39 +24,50 @@
   </div>
 
   <script>
-    const ADMIN_PASSWORD = "**********";
+    const ADMIN_PASSWORD = "admin123";
+    const API_URL = "https://foxpayments.onrender.com/api/upi";
 
     function login() {
       const input = document.getElementById("adminPassword").value;
       if (input === ADMIN_PASSWORD) {
         document.getElementById("admin-section").style.display = "block";
+        fetchUpiId();
       } else {
         alert("Incorrect password.");
       }
     }
 
+    function fetchUpiId() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("upiInput").value = data.upi || "";
+        })
+        .catch(() => {
+          document.getElementById("status").innerText = "Failed to load current UPI ID.";
+        });
+    }
+
     function updateUpiId() {
-  const upi = document.getElementById("upiInput").value.trim();
-  if (!upi) return alert("UPI ID cannot be empty.");
+      const upi = document.getElementById("upiInput").value.trim();
+      if (!upi) {
+        alert("UPI ID cannot be empty.");
+        return;
+      }
 
-  fetch("https://<your-backend-url>/api/upi", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ upi }),
-  })
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("status").innerText = "UPI ID saved to server!";
-  })
-  .catch(err => alert("Failed to save UPI ID"));
-}
-      localStorage.setItem("upi_id", upi);
-      document.getElementById("status")
-
-    window.onload = () => {
-      const saved = localStorage.getItem("upi_id");
-      if (saved) document.getElementById("upiInput").value = saved;
-    };
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ upi }),
+      })
+        .then(res => res.json())
+        .then(() => {
+          document.getElementById("status").innerText = "UPI ID saved to server!";
+        })
+        .catch(() => {
+          document.getElementById("status").innerText = "Failed to save UPI ID.";
+        });
+    }
   </script>
 
 </body>
