@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <style>
+    body { font-family: Arial; padding: 30px; text-align: center; }
+    input, button { padding: 10px; margin: 10px; font-size: 16px; }
+    #admin-section { display: none; }
+    #status { color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>Admin Login</h2>
+  <input type="password" id="adminPassword" placeholder="Enter Admin Password" />
+  <button onclick="login()">Login</button>
+
+  <div id="admin-section">
+    <h3>Update UPI ID</h3>
+    <input type="text" id="upiInput" placeholder="e.g. user@bank" />
+    <button onclick="updateUpiId()">Save UPI ID</button>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const ADMIN_PASSWORD = "admin123";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBA20FTdc3zncZ6tAYr1kZMPJWpkTMHS_4",
+      authDomain: "foxpayments.firebaseapp.com",
+      databaseURL: "https://foxpayments-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "foxpayments",
+      storageBucket: "foxpayments.appspot.com",
+      messagingSenderId: "861166150856",
+      appId: "1:861166150856:web:db5a1f3def846298bfd9d",
+      measurementId: "G-XSTGVJ5ZWW"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function login() {
+      const input = document.getElementById("adminPassword").value;
+      if (input === ADMIN_PASSWORD) {
+        document.getElementById("admin-section").style.display = "block";
+        fetchUpiId();
+      } else {
+        alert("Incorrect password.");
+      }
+    }
+
+    function fetchUpiId() {
+      db.ref("upi").once("value").then(snapshot => {
+        document.getElementById("upiInput").value = snapshot.val() || "";
+      }).catch(() => {
+        document.getElementById("status").innerText = "Failed to load UPI ID.";
+      });
+    }
+
+    function updateUpiId() {
+      const upi = document.getElementById("upiInput").value.trim();
+      if (!upi) {
+        alert("UPI ID cannot be empty.");
+        return;
+      }
+
+      document.getElementById("status").innerText = "Saving...";
+      db.ref("upi").set(upi).then(() => {
+        document.getElementById("status").innerText = "UPI ID saved to Firebase!";
+      }).catch(() => {
+        document.getElementById("status").innerText = "Failed to save UPI ID.";
+      });
+    }
+  </script>
+
+</body>
+</html>
