@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>UPI QR Generator</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body { font-family: Arial; text-align: center; padding: 30px; }
+    input, button { padding: 20px; font-size: 24px; margin: 20px auto; display: block; width: 80%; max-width: 400px; }
+    #qrcode { margin: 30px auto; }
+    .upi-buttons img {
+      width: 60px;
+      margin: 10px 15px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .upi-buttons img:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+
+  <h2>UPI QR Code Generator</h2>
+  <p>UPI ID: <strong id="upiDisplay">Loading...</strong></p>
+  <input type="number" id="amount" placeholder="Enter Amount" step="0.01" min="1" />
+  <button onclick="generateQRCode()">Generate QR Code</button>
+  <div id="qrcode"></div>
+
+  <div class="upi-buttons">
+    <p>Or pay using:</p>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Google_Pay_Logo.svg/512px-Google_Pay_Logo.svg.png" onclick="payWithApp('gpay')" alt="Google Pay">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f5/PhonePe_Logo.svg" onclick="payWithApp('phonepe')" alt="PhonePe">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Paytm_logo.png" onclick="payWithApp('paytm')" alt="Paytm">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/UPI-Logo-vector.svg" onclick="payWithApp('other')" alt="Other UPI">
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBA20FTdc3zncZ6tAYr1kZMPJWpkTMHS_4",
+      authDomain: "foxpayments.firebaseapp.com",
+      databaseURL: "https://foxpayments-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "foxpayments",
+      storageBucket: "foxpayments.appspot.com",
+      messagingSenderId: "861166150856",
+      appId: "1:861166150856:web:db5a1f3def846298bfd9d",
+      measurementId: "G-XSTGVJ5ZWW"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let upiId = "";
+
+    db.ref("upi").once("value").then(snapshot => {
+      upiId = snapshot.val() || "";
+      document.getElementById("upiDisplay").innerText = upiId || "Not Set";
+    }).catch(() => {
+      document.getElementById("upiDisplay").innerText = "Error loading UPI";
+    });
+
+    function generateQRCode() {
+      const amount = document.getElementById("amount").value.trim();
+      if (!amount || parseFloat(amount) <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+
+      const upiUrl = `upi://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR`;
+      document.getElementById("qrcode").innerHTML = "";
+
+      new QRCode(document.getElementById("qrcode"), {
+        text: upiUrl,
+        width: 300,
+        height: 300
+      });
+    }
+
+    function payWithApp(app) {
+      const amount = document.getElementById("amount").value.trim();
+      if (!amount || parseFloat(amount) <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+
+      const base = `upi://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR`;
+
+      let intentUrl = "";
+      switch(app) {
+        case "gpay":
+          intentUrl = `intent://${base.replace('upi://', '')}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+          break;
+        case "phonepe":
+          intentUrl = `intent://${base.replace('upi://', '')}#Intent;scheme=upi;package=com.phonepe.app;end`;
+          break;
+        case "paytm":
+          intentUrl = `intent://${base.replace('upi://', '')}#Intent;scheme=upi;package=net.one97.paytm;end`;
+          break;
+        default:
+          intentUrl = base;
+      }
+
+      window.location.href = intentUrl;
+    }
+  </script>
+
+</body>
+</html>
