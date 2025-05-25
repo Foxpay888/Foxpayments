@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
   <title>Admin Panel</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
-    body { font-family: Arial; padding: 30px; text-align: center; }
-    input, button { padding: 10px; margin: 10px; font-size: 16px; }
-    #admin-section { display: none; }
-    #status { font-weight: bold; }
+    body { font-family: Arial; text-align: center; padding: 20px; }
+    input, button { padding: 10px; font-size: 16px; margin: 10px; }
+    #status { font-weight: bold; margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -18,7 +17,7 @@
   <input type="password" id="adminPassword" placeholder="Enter Admin Password" />
   <button onclick="login()">Login</button>
 
-  <div id="admin-section">
+  <div id="admin-section" style="display: none;">
     <h3>Update UPI ID</h3>
     <input type="text" id="upiInput" placeholder="e.g. user@bank" />
     <button onclick="updateUpiId()">Save UPI ID</button>
@@ -35,16 +34,15 @@
       projectId: "foxpayments",
       storageBucket: "foxpayments.appspot.com",
       messagingSenderId: "861166150856",
-      appId: "1:861166150856:web:db5a1f3def846298bfd9d",
-      measurementId: "G-XSTGVJ5ZWW"
+      appId: "1:861166150856:web:db5a1f3def846298bfd9d"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     function login() {
-      const input = document.getElementById("adminPassword").value;
-      if (input === ADMIN_PASSWORD) {
+      const entered = document.getElementById("adminPassword").value;
+      if (entered === ADMIN_PASSWORD) {
         document.getElementById("admin-section").style.display = "block";
         fetchUpiId();
       } else {
@@ -53,32 +51,37 @@
     }
 
     function fetchUpiId() {
-      db.ref("upi").once("value").then(snapshot => {
-        document.getElementById("upiInput").value = snapshot.val() || "";
-      }).catch((error) => {
-        console.error("Fetch failed:", error);
-        document.getElementById("status").style.color = "red";
-        document.getElementById("status").innerText = "Failed to load UPI ID.";
-      });
+      db.ref("upi").once("value")
+        .then(snapshot => {
+          document.getElementById("upiInput").value = snapshot.val() || "";
+        })
+        .catch(error => {
+          document.getElementById("status").style.color = "red";
+          document.getElementById("status").innerText = "Error fetching UPI: " + error.message;
+          console.error("Fetch error:", error);
+        });
     }
 
     function updateUpiId() {
       const upi = document.getElementById("upiInput").value.trim();
+      const status = document.getElementById("status");
       if (!upi) {
-        alert("UPI ID cannot be empty.");
+        alert("Please enter a UPI ID.");
         return;
       }
 
-      document.getElementById("status").style.color = "green";
-      document.getElementById("status").innerText = "Saving...";
+      status.style.color = "green";
+      status.innerText = "Saving...";
 
-      db.ref("upi").set(upi).then(() => {
-        document.getElementById("status").innerText = "UPI ID saved to Firebase!";
-      }).catch((error) => {
-        console.error("Save failed:", error);
-        document.getElementById("status").style.color = "red";
-        document.getElementById("status").innerText = "Save failed: " + error.message;
-      });
+      db.ref("upi").set(upi)
+        .then(() => {
+          status.innerText = "UPI ID saved successfully!";
+        })
+        .catch(error => {
+          status.style.color = "red";
+          status.innerText = "Failed: " + error.message;
+          console.error("Save error:", error);
+        });
     }
   </script>
 
