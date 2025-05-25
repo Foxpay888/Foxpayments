@@ -16,28 +16,36 @@
       justify-content: center;
       min-height: 100vh;
       background: #fff;
+      background-image: url('bg.png');
+      background-repeat: no-repeat;
+    background-size: cover;
     }
 
 .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   position: absolute;
-  top: 20%;
+  top: 40%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   text-align: center;
   width: 95%;
-  max-width: 500px;
-  padding: 10px 20px;
-  font-size: 17px;
+  max-width: 700px;
+  padding: 20px 30px;
+  font-size: 30px;
   background: #f9f9f9;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-radius: 14px;
 }
 
     input, button {
-      width: 100%;
-      padding: 30px;
-      font-size: 18px;
-      margin: 10px 0;
+      justify-content: top;
+      width: 75%;
+      padding: 20px;
+      font-size: 22px;
+      margin: 10px 0px;
     }
 
     #qrcode {
@@ -49,7 +57,8 @@
       justify-content: center;
       flex-wrap: wrap;
       gap: 15px;
-      margin-top: 20px;
+      margin-top: 2px;
+      margin-bottom: 30px;
     }
 
     .upi-buttons img {
@@ -69,14 +78,14 @@
 <body>
 
   <div class="container">
-    <h2>UPI QR Code Generator</h2>
+    <h2>PAY WITH ANY UPI </h2>
     <p>UPI ID: <strong id="upiDisplay">Loading...</strong></p>
 
     <input type="number" id="amount" placeholder="Enter Amount" step="0.01" min="1" />
     <button onclick="generateQRCode()">Generate QR Code</button>
     <div id="qrcode"></div>
 
-    <p>Or pay using:</p>
+    <p>OR pay using:</p>
     <div class="upi-buttons">
       <img src="https://rb.gy/kl4b7j" onclick="payWithApp('gpay')" alt="Google Pay">
       <img src="logo/phonepe.png" onclick="payWithApp('phonepe')" alt="PhonePe">
@@ -120,8 +129,8 @@
 
       new QRCode(document.getElementById("qrcode"), {
         text: upiUrl,
-        width: 300,
-        height: 300
+        width: 500,
+        height: 500
       });
     }
 
