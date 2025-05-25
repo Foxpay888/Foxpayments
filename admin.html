@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +9,7 @@
     body { font-family: Arial; padding: 30px; text-align: center; }
     input, button { padding: 10px; margin: 10px; font-size: 16px; }
     #admin-section { display: none; }
-    #status { color: green; font-weight: bold; }
+    #status { font-weight: bold; }
   </style>
 </head>
 <body>
@@ -56,7 +55,9 @@
     function fetchUpiId() {
       db.ref("upi").once("value").then(snapshot => {
         document.getElementById("upiInput").value = snapshot.val() || "";
-      }).catch(() => {
+      }).catch((error) => {
+        console.error("Fetch failed:", error);
+        document.getElementById("status").style.color = "red";
         document.getElementById("status").innerText = "Failed to load UPI ID.";
       });
     }
@@ -68,11 +69,15 @@
         return;
       }
 
+      document.getElementById("status").style.color = "green";
       document.getElementById("status").innerText = "Saving...";
+
       db.ref("upi").set(upi).then(() => {
         document.getElementById("status").innerText = "UPI ID saved to Firebase!";
-      }).catch(() => {
-        document.getElementById("status").innerText = "Failed to save UPI ID.";
+      }).catch((error) => {
+        console.error("Save failed:", error);
+        document.getElementById("status").style.color = "red";
+        document.getElementById("status").innerText = "Save failed: " + error.message;
       });
     }
   </script>
