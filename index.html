@@ -84,7 +84,91 @@
     <p>UPI ID: <strong id="upiDisplay">Loading...</strong></p>
 
     <input type="number" id="amount" placeholder="Enter Amount" step="0.01" min="1" />
-    <button onclick="generateQRCode()">Generate QR Code</button>
+    <button onclick="generateQRCode()">Generate QR <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBA02FTdc3zncZ6AIryKlzMPJWpkTMHS_4",
+    authDomain: "foxpaymemts.firebaseapp.com",
+    databaseURL: "https://foxpaymemts-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "foxpaymemts",
+    storageBucket: "foxpaymemts.firebasestorage.app",
+    messagingSenderId: "861166150056",
+    appId: "1:861166150056:web:7cbe82bf4dae692a88fd9d"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  let upiList = [];
+  let currentUpiIndex = 0;
+  let upiId = "";
+
+  db.ref("upi").once("value").then(snapshot => {
+    const data = snapshot.val() || {};
+    upiList = [data.primary, data.alt1, data.alt2, data.alt3, data.alt4].filter(Boolean);
+    if (upiList.length > 0) {
+      upiId = upiList[0];
+      document.getElementById("upiDisplay").innerText = upiId;
+    } else {
+      document.getElementById("upiDisplay").innerText = "No UPI IDs found";
+    }
+  }).catch(() => {
+    document.getElementById("upiDisplay").innerText = "Error loading UPI";
+  });
+
+  function changeUpi() {
+    if (upiList.length < 2) return;
+    currentUpiIndex = (currentUpiIndex + 1) % upiList.length;
+    upiId = upiList[currentUpiIndex];
+    document.getElementById("upiDisplay").innerText = upiId;
+    generateQRCode(); // regenerate QR
+  }
+
+  function generateQRCode() {
+    const amount = document.getElementById("amount").value.trim();
+    if (!amount || parseFloat(amount) <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
+    const upiUrl = `upi://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR`;
+    document.getElementById("qrcode").innerHTML = "";
+
+    new QRCode(document.getElementById("qrcode"), {
+      text: upiUrl,
+      width: 500,
+      height: 500
+    });
+  }
+
+  function payWithApp(app) {
+    const amount = document.getElementById("amount").value.trim();
+    if (!amount || parseFloat(amount) <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
+    const upiLink = `upi://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR`;
+    const encodedUpi = encodeURIComponent(upiLink.replace('upi://', ''));
+
+    let intentUrl = "";
+
+    switch (app) {
+      case "gpay":
+        intentUrl = `intent://${encodedUpi}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+        break;
+      case "phonepe":
+        intentUrl = `intent://${encodedUpi}#Intent;scheme=upi;package=com.phonepe.app;end`;
+        break;
+      case "paytm":
+        intentUrl = `intent://${encodedUpi}#Intent;scheme=upi;package=net.one97.paytm;end`;
+        break;
+      default:
+        intentUrl = upiLink;
+    }
+
+    window.location.href = intentUrl;
+  }
+    </script>Code</button>
     <div id="qrcode"></div>
 <button onclick="changeUpi()">Change UPI</button>
     <p>OR pay using:</p>
@@ -96,113 +180,7 @@
     </div>
   </div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBA02FTdc3zncZ6AIryKlzMPJWpkTMHS_4",
-      authDomain: "foxpaymemts.firebaseapp.com",
-      databaseURL: "https://foxpaymemts-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "foxpaymemts",
-      storageBucket: "foxpaymemts.firebasestorage.app",
-      messagingSenderId: "861166150056",
-      appId: "1:861166150056:web:7cbe82bf4dae692a88fd9d",
-      measurementId: "G-FFRPRV52L1"
-    };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    let upiList = [];
-let currentUpiIndex = 0;
-let upiId = "";
-
-db.ref("upi").once("value").then(snapshot => {
-  const data = snapshot.val() || {};
-  upiList = [data.primary, data.alt1, data.alt2, data.alt3, data.alt4].filter(Boolean);
-  if (upiList.length > 0) {
-    upiId = upiList[0];
-    document.getElementById("upiDisplay").innerText = upiId;
-  } else {
-    document.getElementById("upiDisplay").innerText = "No UPI IDs found";
-  }
-}).catch(() => {
-  document.getElementById("upiDisplay").innerText = "Error loading UPI";
-});
-
-function changeUpi() {
-  if (upiList.length < 2) return;
-  currentUpiIndex = (currentUpiIndex + 1) % upiList.length;
-  upiId = upiList[currentUpiIndex];
-  document.getElementById("upiDisplay").innerText = upiId;
-  generateQRCode(); // regenerate QR
-}
-
-    function generateQRCode() {
-      const amount = document.getElementById("amount").value.trim();
-      if (!amount || parseFloat(amount) <= 0) {
-        alert("Please enter a valid amount.");
-        return;
-      }
-
-      const upiUrl = `upi://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR`;
-      document.getElementById("qrcode").innerHTML = "";
-
-      new QRCode(document.getElementById("qrcode"), {
-        text: upiUrl,
-        width: 500,
-        height: 500
-      });
-    }
-
-    function payWithApp(app) {
-  const amount = document.getElementById("amount").value.trim();
-  if (!amount || parseFloat(amount) <= 0) {
-    alert("Please enter a valid amount.");
-    return;
-  }
-
-  const upiLink = `upi://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR`;
-  const encodedUpi = encodeURIComponent(upiLink.replace('upi://', ''));
-
-  let intentUrl = "";
-
-  switch (app) {
-    case "gpay":
-      intentUrl = `intent://${encodedUpi}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-      break;
-    case "phonepe":
-      intentUrl = `intent://${encodedUpi}#Intent;scheme=upi;package=com.phonepe.app;end`;
-      break;
-    case "paytm":
-      intentUrl = `intent://${encodedUpi}#Intent;scheme=upi;package=net.one97.paytm;end`;
-      break;
-    default:
-      // Fallback generic link if needed
-      intentUrl = upiLink;
-  }
-
-  // Open the UPI app directly with the payment
-  window.location.href = intentUrl;
-    }
-
-      const base = `upi://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR`;
-
-      let intentUrl = "";
-      switch (app) {
-        case "gpay":
-          intentUrl = `intent://${base.replace('upi://', '')}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-          break;
-        case "phonepe":
-          intentUrl = `intent://${base.replace('upi://', '')}#Intent;scheme=upi;package=com.phonepe.app;end`;
-          break;
-        case "paytm":
-          intentUrl = `intent://${base.replace('upi://', '')}#Intent;scheme=upi;package=net.one97.paytm;end`;
-          break;
-        default:
-          intentUrl = base;
-      }
-
-      window.location.href = intentUrl;
-    }
-  </script>
 
 </body>
 </html>
