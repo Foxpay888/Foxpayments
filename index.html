@@ -86,7 +86,7 @@
     <input type="number" id="amount" placeholder="Enter Amount" step="0.01" min="1" />
     <button onclick="generateQRCode()">Generate QR Code</button>
     <div id="qrcode"></div>
-
+<button onclick="changeUpi()">Change UPI</button>
     <p>OR pay using:</p>
     <div class="upi-buttons">
       <img src="logo/gpay.png" onclick="payWithApp('gpay')" alt="Google Pay">
@@ -110,14 +110,30 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let upiId = "";
+    let upiList = [];
+let currentUpiIndex = 0;
+let upiId = "";
 
-    db.ref("upi").once("value").then(snapshot => {
-      upiId = snapshot.val() || "";
-      document.getElementById("upiDisplay").innerText = upiId || "Not Set";
-    }).catch(() => {
-      document.getElementById("upiDisplay").innerText = "Error loading UPI";
-    });
+db.ref("upi").once("value").then(snapshot => {
+  const data = snapshot.val() || {};
+  upiList = [data.primary, data.alt1, data.alt2, data.alt3, data.alt4].filter(Boolean);
+  if (upiList.length > 0) {
+    upiId = upiList[0];
+    document.getElementById("upiDisplay").innerText = upiId;
+  } else {
+    document.getElementById("upiDisplay").innerText = "No UPI IDs found";
+  }
+}).catch(() => {
+  document.getElementById("upiDisplay").innerText = "Error loading UPI";
+});
+
+function changeUpi() {
+  if (upiList.length < 2) return;
+  currentUpiIndex = (currentUpiIndex + 1) % upiList.length;
+  upiId = upiList[currentUpiIndex];
+  document.getElementById("upiDisplay").innerText = upiId;
+  generateQRCode(); // regenerate QR
+}
 
     function generateQRCode() {
       const amount = document.getElementById("amount").value.trim();
