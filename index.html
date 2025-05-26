@@ -153,16 +153,13 @@
 
   switch (app) {
     case "gpay":
-      // GPay works best with intent
       intentUrl = `intent://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
       break;
     case "phonepe":
-      // PhonePe works best with plain UPI URL (NOT intent)
-      intentUrl = upiLink;
+      intentUrl = `intent://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`;
       break;
     case "paytm":
-      // Paytm also works best with plain UPI URL (NOT intent)
-      intentUrl = upiLink;
+      intentUrl = `intent://pay?pa=${upiId}&pn=Payment&am=${amount}&cu=INR#Intent;scheme=upi;package=net.one97.paytm;end`;
       break;
     default:
       intentUrl = upiLink;
